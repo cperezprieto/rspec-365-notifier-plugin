@@ -8,10 +8,10 @@
 		<relativePath />
 	</parent>
 
-	<artifactId>cucumber-365-notifier</artifactId>
+	<artifactId>rspec-365-notifier</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>hpi</packaging>
-	<url>https://wiki.jenkins-ci.org/display/JENKINS/Cucumber+365+Notifier+Plugin</url>
+	<url>https://wiki.jenkins-ci.org/display/JENKINS/Rspec+365+Notifier+Plugin</url>
 	
 	<properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -82,9 +82,9 @@
 	</pluginRepositories>
 
    <scm>
-     <connection>scm:git:ssh://github.com/cperezprieto/cucumber-365-notifier-plugin.git</connection>
-     <developerConnection>scm:git:ssh://git@github.com/cperezprieto/cucumber-365-notifier-plugin.git</developerConnection>
-     <url>https://github.com/cperezprieto/cucumber-365-notifier-plugin</url>
+     <connection>scm:git:ssh://github.com/cperezprieto/rspec-365-notifier-plugin.git</connection>
+     <developerConnection>scm:git:ssh://git@github.com/cperezprieto/rspec-365-notifier-plugin.git</developerConnection>
+     <url>https://github.com/cperezprieto/rspec-365-notifier-plugin</url>
      <tag>HEAD</tag>
    </scm>
 
