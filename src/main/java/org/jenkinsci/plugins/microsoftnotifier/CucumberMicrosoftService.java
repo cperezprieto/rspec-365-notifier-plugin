@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.slacknotifier;
+package org.jenkinsci.plugins.microsoftnotifier;
 
 import hudson.FilePath;
 import hudson.model.Run;
@@ -12,25 +12,30 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.stream.JsonReader;
 
-public class CucumberSlackService {
+public class CucumberMicrosoftService {
 
-	private static final Logger LOG = Logger.getLogger(CucumberSlackService.class.getName());
+	private static final Logger LOG = Logger.getLogger(CucumberMicrosoftService.class.getName());
 
 	private final String webhookUrl;
 	private final String jenkinsUrl;
 
-	public CucumberSlackService(String webhookUrl) {
+	public CucumberMicrosoftService(String webhookUrl) {
 		this.webhookUrl = webhookUrl;
 		this.jenkinsUrl = JenkinsLocationConfiguration.get().getUrl();
 	}
 
-	public void sendCucumberReportToSlack(Run<?,?> build, FilePath workspace, String json, String channel, String extra, boolean hideSuccessfulResults) {
-		LOG.info("Posting cucumber reports to slack for '" + build.getParent().getDisplayName() + "'");
+	public void sendCucumberReportToMicrosoft(Run<?,?> build, FilePath workspace, String json, String extra, boolean hideSuccessfulResults) {
+		LOG.info("Posting cucumber reports to 365 for '" + build.getParent().getDisplayName() + "'");
 		LOG.info("Cucumber reports are in '" + workspace + "'");
+		
+		LOG.info("Webhook: " + webhookUrl);
+
+		String userName = build.getCauses().get(0).getShortDescription().replaceAll("Started by ", "");;
+		String duration = build.getDurationString().replaceAll(" and counting", "");
 
 		JsonElement jsonElement = getResultFileAsJsonElement(workspace, json);
-		SlackClient client = new SlackClient(webhookUrl, jenkinsUrl, channel, hideSuccessfulResults);
-		client.postToSlack(jsonElement, build.getParent().getDisplayName(), build.getNumber(), extra);
+		MicrosoftClient client = new MicrosoftClient(webhookUrl, jenkinsUrl, hideSuccessfulResults);
+		client.postToMicrosoft(jsonElement, build.getParent().getDisplayName(), build.getNumber(), extra, userName, duration);
 	}
 
 	private JsonElement getResultFileAsJsonElement(FilePath workspace, String json) {

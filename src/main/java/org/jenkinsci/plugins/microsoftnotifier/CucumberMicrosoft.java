@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.slacknotifier;
+package org.jenkinsci.plugins.microsoftnotifier;
 
 import hudson.Extension;
 import hudson.model.JobProperty;
@@ -16,29 +16,29 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
-public class CucumberSlack extends JobProperty<Job<?, ?>> {
+public class CucumberMicrosoft extends JobProperty<Job<?, ?>> {
 
 	@Override
-	public CucumberSlackDescriptor getDescriptor() {
-		return (CucumberSlackDescriptor) Jenkins.getInstance().getDescriptor(getClass());
+	public CucumberMicrosoftDescriptor getDescriptor() {
+		return (CucumberMicrosoftDescriptor) Jenkins.getInstance().getDescriptor(getClass());
 	}
 
-	public static CucumberSlackDescriptor get() {
-		return (CucumberSlackDescriptor) Jenkins.getInstance().getDescriptor(CucumberSlack.class);
+	public static CucumberMicrosoftDescriptor get() {
+		return (CucumberMicrosoftDescriptor) Jenkins.getInstance().getDescriptor(CucumberMicrosoft.class);
 	}
 
 	@Extension
-	public static final class CucumberSlackDescriptor extends JobPropertyDescriptor {
+	public static final class CucumberMicrosoftDescriptor extends JobPropertyDescriptor {
 
 		private String webHookEndpoint;
 		
-		public CucumberSlackDescriptor() {
+		public CucumberMicrosoftDescriptor() {
 			load();
 		}
 
 		@Override
 		public String getDisplayName() {
-			return "Cucumber Slack Notifier";
+			return "Cucumber 365 Notifier";
 		}
 
 		@Override
@@ -53,16 +53,15 @@ public class CucumberSlack extends JobProperty<Job<?, ?>> {
 		}
 
 		public FormValidation doCheckWebHookEndpoint(@QueryParameter String value) throws IOException, ServletException {
-			if (value.length() == 0) {
-				return FormValidation.error("Please set a webHookEndpoint");
-			}
-
-			if (value.length() < 20) {
-				return FormValidation.warning("Isn't the webHookEndpoint too short?");
-			}
-
-			if (!value.startsWith("https://hooks.slack.com/")) {
-				return FormValidation.warning("Slack endpoint should start with https://hooks.slack.com/");
+			if (value.length() > 0)
+			{
+				if (value.length() < 20) {
+					return FormValidation.warning("Isn't the webHookEndpoint too short?");
+				}
+	
+				if (!value.startsWith("https://outlook.office.com/webhook/")) {
+					return FormValidation.warning("365 endpoint should start with https://outlook.office.com/webhook/");
+				}
 			}
 
 			return FormValidation.ok();

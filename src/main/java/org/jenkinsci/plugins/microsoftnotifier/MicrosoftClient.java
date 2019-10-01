@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.slacknotifier;
+package org.jenkinsci.plugins.microsoftnotifier;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -15,51 +15,49 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class SlackClient {
+public class MicrosoftClient {
 
-	private static final Logger LOG = Logger.getLogger(SlackClient.class.getName());
+	private static final Logger LOG = Logger.getLogger(MicrosoftClient.class.getName());
 
 	private static final String ENCODING = "UTF-8";
 	private static final String CONTENT_TYPE = "application/json";
 
 	private final String webhookUrl;
 	private final String jenkinsUrl;
-	private final String channel;
 	private final boolean hideSuccessfulResults;
 
-	public SlackClient(String webhookUrl, String jenkinsUrl, String channel, boolean hideSuccessfulResults) {
+	public MicrosoftClient(String webhookUrl, String jenkinsUrl, boolean hideSuccessfulResults) {
 		this.webhookUrl = webhookUrl;
 		this.jenkinsUrl = jenkinsUrl;
-		this.channel = channel;
 		this.hideSuccessfulResults = hideSuccessfulResults;
 	}
 
-	public void postToSlack(JsonElement results, final String jobName, final int buildNumber, final String extra) {
-		LOG.info("Publishing test report to slack channel: " + channel);
+	public void postToMicrosoft(JsonElement results, final String jobName, final int buildNumber, final String extra, final String userName, final String duration) {
+		LOG.info("Publishing test report to 365");
 		CucumberResult result = results == null ? dummyResults() : processResults(results);
-		String json = result.toSlackMessage(jobName, buildNumber, channel, jenkinsUrl, extra);
-		postToSlack(json);
+		String json = result.toMicrosoftMessage(jobName, buildNumber, jenkinsUrl, extra, userName, duration);
+		postToMicrosoft(json);
 	}
 
 	private CucumberResult dummyResults() {
-		return new CucumberResult(Arrays.asList(new FeatureResult("Dummy Test", 100)),1,100);
+		return new CucumberResult(Arrays.asList(new FeatureResult("feature/web/dummy_test.feature", 100, 10, 0, 0)),1, 100, 0, 0, 0);
 	}
 
 	
-	private void postToSlack(String json) {
+	private void postToMicrosoft(String json) {
 		LOG.fine("Json being posted: " + json);
 		StringRequestEntity requestEntity = getStringRequestEntity(json);
 		PostMethod postMethod = new PostMethod(webhookUrl);
 		postMethod.setRequestEntity(requestEntity);
-		postToSlack(postMethod);
+		postToMicrosoft(postMethod);
 	}
 
-	private void postToSlack(PostMethod postMethod) {
+	private void postToMicrosoft(PostMethod postMethod) {
 		HttpClient http = new HttpClient();
 		try {
 			int status = http.executeMethod(postMethod);
 			if (status != 200) {
-				throw new RuntimeException("Received HTTP Status code [" + status + "] while posting to slack");
+				throw new RuntimeException("Received HTTP Status code [" + status + "] while posting to 365");
 			}
 		} catch (IOException e) {
 			throw new RuntimeException("Message could not be posted", e);
@@ -69,14 +67,16 @@ public class SlackClient {
 	public CucumberResult processResults(JsonElement resultElement) {
 		int totalScenarios = 0;
 		int passPercent = 0;
+		int totaFailedScenarios = 0;
+		int totalPendingScenarios = 0;
 		List<FeatureResult> results = new ArrayList<FeatureResult>();
 		JsonArray features = resultElement.getAsJsonArray();
-		int failedScenarios = 0;
 		for (JsonElement featureElement : features) {
 			JsonObject feature = featureElement.getAsJsonObject();
 			JsonArray elements = feature.get("elements").getAsJsonArray();
 			int scenariosTotal = elements.size();
 			int failed = 0;
+			int pending = 0;
 			for (JsonElement scenarioElement : elements) {
 				JsonObject scenario = scenarioElement.getAsJsonObject();
 				JsonArray steps = scenario.get("steps").getAsJsonArray();
@@ -84,8 +84,13 @@ public class SlackClient {
 					JsonObject step = stepElement.getAsJsonObject();
 					String result = step.get("result").getAsJsonObject().get("status").getAsString();
 					if (!result.equals("passed")) {
-						failed = failed + 1;
-						failedScenarios = failedScenarios + 1;
+						if (result.equals("failed")) {
+							failed = failed + 1;
+							totaFailedScenarios = totaFailedScenarios + 1;
+						} else {
+							pending = pending + 1;
+							totalPendingScenarios = totalPendingScenarios + 1;
+						}
 						break;
 					}
 				}
@@ -93,11 +98,11 @@ public class SlackClient {
 			totalScenarios = totalScenarios + scenariosTotal;
 			final int scenarioPassPercent = Math.round(((scenariosTotal - failed) * 100) / scenariosTotal);
 			if (scenarioPassPercent != 100 || !hideSuccessfulResults) {
-				results.add(new FeatureResult(feature.get("uri").getAsString(), scenarioPassPercent));
+				results.add(new FeatureResult(feature.get("uri").getAsString(), scenarioPassPercent, (scenariosTotal - failed - pending), failed, pending));
 			}
 		}
-		passPercent = Math.round(((totalScenarios - failedScenarios) * 100) / totalScenarios);
-		return new CucumberResult(results, totalScenarios, passPercent);
+		passPercent = Math.round(((totalScenarios - totaFailedScenarios) * 100) / totalScenarios);
+		return new CucumberResult(results, totalScenarios, passPercent, (totalScenarios - totaFailedScenarios - totalPendingScenarios), totaFailedScenarios, totalPendingScenarios);
 	}
 
 	private StringRequestEntity getStringRequestEntity(String json) {

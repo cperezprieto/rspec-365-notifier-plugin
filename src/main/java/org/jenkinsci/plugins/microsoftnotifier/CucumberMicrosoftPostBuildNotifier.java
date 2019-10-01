@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.slacknotifier;
+package org.jenkinsci.plugins.microsoftnotifier;
 
 import hudson.Extension;
 import hudson.Launcher;
@@ -23,23 +23,23 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
-public class CucumberSlackPostBuildNotifier extends Recorder {
+public class CucumberMicrosoftPostBuildNotifier extends Recorder {
 
-	private static final Logger LOG = Logger.getLogger(CucumberSlackPostBuildNotifier.class.getName());
+	private static final Logger LOG = Logger.getLogger(CucumberMicrosoftPostBuildNotifier.class.getName());
 
-	private final String channel;
+	private final String jobWebhook;
 	private final String json;
 	private final boolean hideSuccessfulResults;
 
 	@DataBoundConstructor
-	public CucumberSlackPostBuildNotifier(String channel, String json, boolean hideSuccessfulResults) {
-		this.channel = channel;
+	public CucumberMicrosoftPostBuildNotifier(String jobWebhook, String json, boolean hideSuccessfulResults) {
+		this.jobWebhook = jobWebhook;
 		this.json = json;
 		this.hideSuccessfulResults = hideSuccessfulResults;
 	}
 
-	public String getChannel() {
-		return channel;
+	public String getJobWebhook() {
+		return jobWebhook;
 	}
 
 	public String getJson() {
@@ -53,18 +53,18 @@ public class CucumberSlackPostBuildNotifier extends Recorder {
 	@Override
 	public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
 			throws InterruptedException, IOException {
-		String webhookUrl = CucumberSlack.get().getWebHookEndpoint();
-		
+		String webhookUrl = CucumberMicrosoft.get().getWebHookEndpoint();
+
+		if (this.jobWebhook != null && this.jobWebhook != "")
+			webhookUrl = this.jobWebhook;
+
 		if (StringUtils.isEmpty(webhookUrl)) {
-			LOG.fine("Skipping cucumber slack notifier...");
+			listener.getLogger().println("No webhook found... Skipping cucumber 365 notifier.");
 			return true;
 		}
 
-		// TODO Remove this line
-		LOG.info("hideSuccessfulResults = ***" + hideSuccessfulResults + "***");
-
-		CucumberSlackService service = new CucumberSlackService(webhookUrl);
-		service.sendCucumberReportToSlack(build, build.getWorkspace(), json, channel, null, hideSuccessfulResults);
+		CucumberMicrosoftService service = new CucumberMicrosoftService(webhookUrl);
+		service.sendCucumberReportToMicrosoft(build, build.getWorkspace(), json, null, hideSuccessfulResults);
 
 		return true;
 	}
@@ -83,11 +83,14 @@ public class CucumberSlackPostBuildNotifier extends Recorder {
 			load();
 		}
 
-		public FormValidation doCheckName(@QueryParameter String value) throws IOException, ServletException {
+		public FormValidation doCheckJobWebhook(@QueryParameter String value) throws IOException, ServletException {
 			if (value.length() == 0)
-				return FormValidation.error("Please set a name");
+				return FormValidation.warning("It will use the default Webhook");
 			if (value.length() < 4)
-				return FormValidation.warning("Isn't the name too short?");
+				return FormValidation.warning("Isn't the uri too short?");
+			if (!value.startsWith("https://outlook.office.com/webhook/")) {
+				return FormValidation.warning("365 endpoint should start with https://outlook.office.com/webhook/");
+			}
 			return FormValidation.ok();
 		}
 
@@ -96,7 +99,7 @@ public class CucumberSlackPostBuildNotifier extends Recorder {
 		}
 
 		public String getDisplayName() {
-			return "Send Cucumber Report to Slack";
+			return "Send Cucumber Report to 365";
 		}
 
 		@Override

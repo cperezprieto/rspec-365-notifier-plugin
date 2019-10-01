@@ -1,10 +1,10 @@
-package org.jenkinsci.plugins.slacknotifier.workflow;
+package org.jenkinsci.plugins.microsoftnotifier.workflow;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 
-import org.jenkinsci.plugins.slacknotifier.CucumberSlack;
-import org.jenkinsci.plugins.slacknotifier.CucumberSlackService;
+import org.jenkinsci.plugins.microsoftnotifier.CucumberMicrosoft;
+import org.jenkinsci.plugins.microsoftnotifier.CucumberMicrosoftService;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousNonBlockingStepExecution;
@@ -20,17 +20,17 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
 
-public class CucumberSlackStep extends AbstractStepImpl {
+public class CucumberMicrosoftStep extends AbstractStepImpl {
 
-    private final @Nonnull String channel;
+    private final String jobWebhook;
     private String json;
     private boolean hideSuccessfulResults;
     private String extra;
     private boolean failOnError;
 
     @Nonnull
-    public String getChannel() {
-        return channel;
+    public String getJobWebhook() {
+        return jobWebhook;
     }
 
     public String getJson() {
@@ -70,34 +70,34 @@ public class CucumberSlackStep extends AbstractStepImpl {
     }
 
     @DataBoundConstructor
-    public CucumberSlackStep(@Nonnull String channel) {
-        this.channel = channel;
+    public CucumberMicrosoftStep(String jobWebhook) {
+        this.jobWebhook = jobWebhook;
     }
 
     @Extension
     public static class DescriptorImpl extends AbstractStepDescriptorImpl {
 
         public DescriptorImpl() {
-            super(CucumberSlackSendExecution.class);
+            super(CucumberMicrosoftSendExecution.class);
         }
 
         @Override
         public String getFunctionName() {
-            return "cucumberSlackSend";
+            return "cucumberMicrosoftSend";
         }
 
         @Override
         public String getDisplayName() {
-            return "Send cucumber notifications to slack";
+            return "Send cucumber notifications to 365";
         }
     }
 
-    public static class CucumberSlackSendExecution extends AbstractSynchronousNonBlockingStepExecution<Void> {
+    public static class CucumberMicrosoftSendExecution extends AbstractSynchronousNonBlockingStepExecution<Void> {
 
         private static final long serialVersionUID = 1L;
 
         @Inject
-        private transient CucumberSlackStep step;
+        private transient CucumberMicrosoftStep step;
 
         @StepContextParameter
         private transient TaskListener listener;
@@ -117,25 +117,31 @@ public class CucumberSlackStep extends AbstractStepImpl {
             try {
                 jenkins = Jenkins.getInstance();
             } catch (NullPointerException ne) {
-                listener.error("Unable to notify slack",ne);
+                listener.error("Unable to notify 365",ne);
                 return null;
             }
             
-            CucumberSlack.CucumberSlackDescriptor cucumberSlackDesc = jenkins.getDescriptorByType(CucumberSlack.CucumberSlackDescriptor.class);
+            CucumberMicrosoft.CucumberMicrosoftDescriptor cucumberMicrosoftDesc = jenkins.getDescriptorByType(CucumberMicrosoft.CucumberMicrosoftDescriptor.class);
             
-            String webHookEndpoint = cucumberSlackDesc.getWebHookEndpoint();
+            String webHookEndpoint = cucumberMicrosoftDesc.getWebHookEndpoint();
             String json = step.json;
             boolean hideSuccessfulResults = step.hideSuccessfulResults;
-            String channel = step.channel;
+            String jobWebhook = step.jobWebhook;
             String extra = step.extra;
+            
+            if(jobWebhook != null && jobWebhook != "")
+            	webHookEndpoint = jobWebhook;
+            
+            if(webHookEndpoint == null || webHookEndpoint == "")
+            	throw new AbortException("Unable to send report to 365. Webhook not configured.");
 
-            CucumberSlackService slackService = new CucumberSlackService(webHookEndpoint);
+            CucumberMicrosoftService microsoftService = new CucumberMicrosoftService(webHookEndpoint);
             
             try {
-            	slackService.sendCucumberReportToSlack(run, workspace, json, channel, extra, hideSuccessfulResults);
+            	microsoftService.sendCucumberReportToMicrosoft(run, workspace, json, extra, hideSuccessfulResults);
             } catch (Exception exp) {
             	if (step.failOnError) {
-            		throw new AbortException("Unable to send slack notification: " + exp);
+            		throw new AbortException("Unable to send 365 notification: " + exp);
             	}
             }
             
