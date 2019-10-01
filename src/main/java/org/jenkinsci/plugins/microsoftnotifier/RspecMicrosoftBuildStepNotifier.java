@@ -56,12 +56,12 @@ public class RspecMicrosoftBuildStepNotifier extends Builder {
 			webhookUrl = this.jobWebhook;
 
 		if (StringUtils.isEmpty(webhookUrl)) {
-			listener.getLogger().println("No webhook found... Skipping cucumber 365 notifier.");
+			listener.getLogger().println("No webhook found... Skipping rspec 365 notifier.");
 			return true;
 		}
 
 		RspecMicrosoftService service = new RspecMicrosoftService(webhookUrl);
-		service.sendCucumberReportToMicrosoft(build, build.getWorkspace(), json, null, hideSuccessfulResults);
+		service.sendRspecReportToMicrosoft(build, build.getWorkspace(), json, null, hideSuccessfulResults);
 
 		return true;
 	}
@@ -96,7 +96,7 @@ public class RspecMicrosoftBuildStepNotifier extends Builder {
 		}
 
 		public String getDisplayName() {
-			return "Send Cucumber Report to 365";
+			return "Send Rspec Report to 365";
 		}
 
 		@Override

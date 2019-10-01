@@ -24,9 +24,9 @@ public class RspecMicrosoftService {
 		this.jenkinsUrl = JenkinsLocationConfiguration.get().getUrl();
 	}
 
-	public void sendCucumberReportToMicrosoft(Run<?,?> build, FilePath workspace, String json, String extra, boolean hideSuccessfulResults) {
-		LOG.info("Posting cucumber reports to 365 for '" + build.getParent().getDisplayName() + "'");
-		LOG.info("Cucumber reports are in '" + workspace + "'");
+	public void sendRspecReportToMicrosoft(Run<?,?> build, FilePath workspace, String json, String extra, boolean hideSuccessfulResults) {
+		LOG.info("Posting rspec reports to 365 for '" + build.getParent().getDisplayName() + "'");
+		LOG.info("Rspec reports are in '" + workspace + "'");
 		
 		LOG.info("Webhook: " + webhookUrl);
 

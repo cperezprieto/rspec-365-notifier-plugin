@@ -19,26 +19,26 @@ import org.kohsuke.stapler.StaplerRequest;
 public class RspecMicrosoft extends JobProperty<Job<?, ?>> {
 
 	@Override
-	public CucumberMicrosoftDescriptor getDescriptor() {
-		return (CucumberMicrosoftDescriptor) Jenkins.getInstance().getDescriptor(getClass());
+	public RspecMicrosoftDescriptor getDescriptor() {
+		return (RspecMicrosoftDescriptor) Jenkins.getInstance().getDescriptor(getClass());
 	}
 
-	public static CucumberMicrosoftDescriptor get() {
-		return (CucumberMicrosoftDescriptor) Jenkins.getInstance().getDescriptor(RspecMicrosoft.class);
+	public static RspecMicrosoftDescriptor get() {
+		return (RspecMicrosoftDescriptor) Jenkins.getInstance().getDescriptor(RspecMicrosoft.class);
 	}
 
 	@Extension
-	public static final class CucumberMicrosoftDescriptor extends JobPropertyDescriptor {
+	public static final class RspecMicrosoftDescriptor extends JobPropertyDescriptor {
 
 		private String webHookEndpoint;
 		
-		public CucumberMicrosoftDescriptor() {
+		public RspecMicrosoftDescriptor() {
 			load();
 		}
 
 		@Override
 		public String getDisplayName() {
-			return "Cucumber 365 Notifier";
+			return "Rsepc 365 Notifier";
 		}
 
 		@Override

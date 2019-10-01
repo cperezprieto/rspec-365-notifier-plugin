@@ -20,7 +20,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
 
-public class CucumberMicrosoftStep extends AbstractStepImpl {
+public class RspecMicrosoftStep extends AbstractStepImpl {
 
     private final String jobWebhook;
     private String json;
@@ -70,7 +70,7 @@ public class CucumberMicrosoftStep extends AbstractStepImpl {
     }
 
     @DataBoundConstructor
-    public CucumberMicrosoftStep(String jobWebhook) {
+    public RspecMicrosoftStep(String jobWebhook) {
         this.jobWebhook = jobWebhook;
     }
 
@@ -78,26 +78,26 @@ public class CucumberMicrosoftStep extends AbstractStepImpl {
     public static class DescriptorImpl extends AbstractStepDescriptorImpl {
 
         public DescriptorImpl() {
-            super(CucumberMicrosoftSendExecution.class);
+            super(RspecMicrosoftSendExecution.class);
         }
 
         @Override
         public String getFunctionName() {
-            return "cucumberMicrosoftSend";
+            return "rspecMicrosoftSend";
         }
 
         @Override
         public String getDisplayName() {
-            return "Send cucumber notifications to 365";
+            return "Send rspec notifications to 365";
         }
     }
 
-    public static class CucumberMicrosoftSendExecution extends AbstractSynchronousNonBlockingStepExecution<Void> {
+    public static class RspecMicrosoftSendExecution extends AbstractSynchronousNonBlockingStepExecution<Void> {
 
         private static final long serialVersionUID = 1L;
 
         @Inject
-        private transient CucumberMicrosoftStep step;
+        private transient RspecMicrosoftStep step;
 
         @StepContextParameter
         private transient TaskListener listener;
@@ -121,9 +121,9 @@ public class CucumberMicrosoftStep extends AbstractStepImpl {
                 return null;
             }
             
-            RspecMicrosoft.CucumberMicrosoftDescriptor cucumberMicrosoftDesc = jenkins.getDescriptorByType(RspecMicrosoft.CucumberMicrosoftDescriptor.class);
+            RspecMicrosoft.RspecMicrosoftDescriptor rspecMicrosoftDesc = jenkins.getDescriptorByType(RspecMicrosoft.RspecMicrosoftDescriptor.class);
             
-            String webHookEndpoint = cucumberMicrosoftDesc.getWebHookEndpoint();
+            String webHookEndpoint = rspecMicrosoftDesc.getWebHookEndpoint();
             String json = step.json;
             boolean hideSuccessfulResults = step.hideSuccessfulResults;
             String jobWebhook = step.jobWebhook;
@@ -138,7 +138,7 @@ public class CucumberMicrosoftStep extends AbstractStepImpl {
             RspecMicrosoftService microsoftService = new RspecMicrosoftService(webHookEndpoint);
             
             try {
-            	microsoftService.sendCucumberReportToMicrosoft(run, workspace, json, extra, hideSuccessfulResults);
+            	microsoftService.sendRspecReportToMicrosoft(run, workspace, json, extra, hideSuccessfulResults);
             } catch (Exception exp) {
             	if (step.failOnError) {
             		throw new AbortException("Unable to send 365 notification: " + exp);

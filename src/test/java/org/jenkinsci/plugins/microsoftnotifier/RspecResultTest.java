@@ -23,28 +23,7 @@ public class RspecResultTest {
 		assertTrue(message.contains("\"summary\":\"test-job finished Successfully\","));
 		assertTrue(message.contains("\"themeColor\":\"008000\","));
 	}
-/*	
-	@Test
-	public void canGenerateHeaderWithExtraInformation() {
-		String header = successfulResult().toHeader("test-job", 1, "http://localhost:8080/", "Extra Content", 0);
-		assertNotNull(header);
-		assertTrue(header.contains("Extra Content"));
-		assertTrue(header.contains("Features: 1"));
-		assertTrue(header.contains("Scenarios: 1"));
-		assertTrue(header.contains("Build: <http://localhost:8080/job/test-job/1/cucumber-html-reports/|1>"));
-	}
-	
-	@Test
-	public void canGenerateHeaderWithPendingInformation() {
-		String header = successfulPendingResult().toHeader("test-job", 1, "http://localhost:8080/", "Extra Content", 1);
-		assertNotNull(header);
-		assertTrue(header.contains("Extra Content"));
-		assertTrue(header.contains("Features: 1"));
-		assertTrue(header.contains("Scenarios: 1"));
-		assertTrue(header.contains("Pending Tests: 1"));
-		assertTrue(header.contains("Build: <http://localhost:8080/job/test-job/1/cucumber-html-reports/|1>"));
-	}
-	*/
+
 	private RspecResult successfulResult() {
 		return new RspecResult(Arrays.asList(new SpecResult("features/web/dummy_test.feature", 100, 10, 0, 0)),10, 100, 10, 0, 0, 0);
 	}
