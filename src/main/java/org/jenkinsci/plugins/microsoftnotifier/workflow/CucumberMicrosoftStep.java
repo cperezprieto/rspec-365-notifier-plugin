@@ -3,8 +3,8 @@ package org.jenkinsci.plugins.microsoftnotifier.workflow;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 
-import org.jenkinsci.plugins.microsoftnotifier.CucumberMicrosoft;
-import org.jenkinsci.plugins.microsoftnotifier.CucumberMicrosoftService;
+import org.jenkinsci.plugins.microsoftnotifier.RspecMicrosoft;
+import org.jenkinsci.plugins.microsoftnotifier.RspecMicrosoftService;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousNonBlockingStepExecution;
@@ -121,7 +121,7 @@ public class CucumberMicrosoftStep extends AbstractStepImpl {
                 return null;
             }
             
-            CucumberMicrosoft.CucumberMicrosoftDescriptor cucumberMicrosoftDesc = jenkins.getDescriptorByType(CucumberMicrosoft.CucumberMicrosoftDescriptor.class);
+            RspecMicrosoft.CucumberMicrosoftDescriptor cucumberMicrosoftDesc = jenkins.getDescriptorByType(RspecMicrosoft.CucumberMicrosoftDescriptor.class);
             
             String webHookEndpoint = cucumberMicrosoftDesc.getWebHookEndpoint();
             String json = step.json;
@@ -135,7 +135,7 @@ public class CucumberMicrosoftStep extends AbstractStepImpl {
             if(webHookEndpoint == null || webHookEndpoint == "")
             	throw new AbortException("Unable to send report to 365. Webhook not configured.");
 
-            CucumberMicrosoftService microsoftService = new CucumberMicrosoftService(webHookEndpoint);
+            RspecMicrosoftService microsoftService = new RspecMicrosoftService(webHookEndpoint);
             
             try {
             	microsoftService.sendCucumberReportToMicrosoft(run, workspace, json, extra, hideSuccessfulResults);

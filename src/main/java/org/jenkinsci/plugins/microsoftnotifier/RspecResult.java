@@ -6,50 +6,56 @@ import com.google.common.primitives.Chars;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-public class CucumberResult {
+public class RspecResult {
 	final char[] ESPECIAL_CHARACTERS = {'`', '*', '_', '{', '}', '[', ']', '(', ')', '#', '+', '-', '.', '!'};
 	final String PASSED = "008000";
 	final String WARNING = "FFD700";
 	final String FAILED = "FF0000";
-	final String IMAGE_BASE = "https://github.com/cperezprieto/cucumber-365-notifier-plugin/raw/master/src/test/resources/";
+	final String IMAGE_BASE = "https://github.com/cperezprieto/rspec-365-notifier-plugin/raw/master/src/test/resources/";
 	
-	final List<FeatureResult> featureResults;
+	final List<SpecResult> specResults;
 	final int passPercentage;
-	final int totalScenarios;
+	final int totalExamples;
 	final int totalPassedTests;
 	final int totalFailedTests;
 	final int totalPendingTests;
+	final int failuresOutsideTests;
 	String themeColour;
 	String result;
 	String imageResult;
 	
-	public CucumberResult(List<FeatureResult> featureResults, int totalScenarios, int passPercentage, int totalPassedTests, int totalFailedTests, int totalPendingTests) {
-		this.featureResults = featureResults;
-		this.totalScenarios = totalScenarios;
+	public RspecResult(List<SpecResult> specResults, int totalExamples, int passPercentage, int totalPassedTests, int totalFailedTests, int totalPendingTests, int failuresOutsideTests) {
+		this.specResults = specResults;
+		this.totalExamples = totalExamples;
 		this.passPercentage = passPercentage;
 		this.totalPassedTests = totalPassedTests;
 		this.totalFailedTests = totalFailedTests;
 		this.totalPendingTests = totalPendingTests;
+		this.failuresOutsideTests = failuresOutsideTests;
 	}
 	
 	public int getPassPercentage() {
 		return this.passPercentage;
 	}
 	
-	public int getTotalFeatures() {
-		return this.featureResults.size();
+	public int getTotalSpecs() {
+		return this.specResults.size();
 	}
 	
-	public int getTotalScenarios() {
-		return this.totalScenarios;
+	public int getTotalExamples() {
+		return this.totalExamples;
 	}
 	
 	public int getPendingTests() {
 		return this.totalPendingTests;
 	}
 	
-	public List<FeatureResult> getFeatureResults() {
-		return this.featureResults;
+	public List<SpecResult> getSpecResults() {
+		return this.specResults;
+	}
+	
+	public int getFailuresOutsideTests() {
+		return this.failuresOutsideTests;
 	}
 	
 	public String toMicrosoftMessage(final String jobName,
@@ -71,6 +77,12 @@ public class CucumberResult {
 			this.result = "with Errors";
 			this.imageResult = IMAGE_BASE + "failed.png";
 		} 
+		
+		if(getFailuresOutsideTests() > 0) {
+			this.themeColour = FAILED;
+			this.result = "with Failures outside the tests";
+			this.imageResult = IMAGE_BASE + "failed.png";
+		}
 		
 		addBaseJson(json, buildNumber, jobName, jenkinsUrl, extra);
 		json.add("sections", getSections(escapeSpecialCharacters(jobName), buildNumber, jenkinsUrl, userName, duration));
@@ -119,7 +131,7 @@ public class CucumberResult {
 	}
 	
 	private JsonObject getSummarySection(final String jobName, final int buildNumber, final String jenkinsUrl, final String userName, final String duration) {		
-		final String hyperLink = getJenkinsHyperlink(jenkinsUrl, jobName, buildNumber) + "cucumber-html-reports/";
+		final String hyperLink = getJenkinsHyperlink(jenkinsUrl, jobName, buildNumber);
 		final JsonObject summary = new JsonObject();
         
 		summary.addProperty("activityImage", imageResult);
@@ -131,7 +143,8 @@ public class CucumberResult {
 		
 		final JsonObject testSummary = new JsonObject();
 		testSummary.addProperty("name", "Test Summary");
-		testSummary.addProperty("value", "**Scenarios**: " + this.totalScenarios + ", **Passed**: " + this.totalPassedTests + ", **Failed**: " + this.totalFailedTests + ", **Pending**: " + this.totalPendingTests);
+		testSummary.addProperty("value", "**Examples**: " + this.totalExamples + ", **Passed**: " + this.totalPassedTests + ", **Failed**: " +
+				this.totalFailedTests + ", **Pending**: " + this.totalPendingTests + ", **Outside Failures**: " + this.failuresOutsideTests);
 		
 		
 		final JsonObject buildSummary = new JsonObject();
@@ -156,12 +169,12 @@ public class CucumberResult {
 		
 		int count = 1;
 		
-		for (FeatureResult feature : getFeatureResults()) {
+		for (SpecResult spec : getSpecResults()) {
 			final JsonObject scenario = new JsonObject();
 			scenario.addProperty("name", count);
 			
 			String featureColor = PASSED;
-			String featureStatus = feature.getStatus();
+			String featureStatus = spec.getStatus();
 			
 			if (featureStatus == "Pending")
 				featureColor = WARNING;
@@ -169,7 +182,7 @@ public class CucumberResult {
 			if (featureStatus == "Failed")
 				featureColor = FAILED;
 			
-			scenario.addProperty("value", "**<span style='color:#" + featureColor + "'>" + escapeSpecialCharacters(feature.getDisplayName()) + "</span>**");
+			scenario.addProperty("value", "**<span style='color:#" + featureColor + "'>" + escapeSpecialCharacters(spec.getDisplayName()) + "</span>**");
 			facts.add(scenario);
 			count++;
 		}

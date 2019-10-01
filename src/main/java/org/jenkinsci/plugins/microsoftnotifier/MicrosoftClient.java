@@ -34,13 +34,13 @@ public class MicrosoftClient {
 
 	public void postToMicrosoft(JsonElement results, final String jobName, final int buildNumber, final String extra, final String userName, final String duration) {
 		LOG.info("Publishing test report to 365");
-		CucumberResult result = results == null ? dummyResults() : processResults(results);
+		RspecResult result = results == null ? dummyResults() : processResults(results);
 		String json = result.toMicrosoftMessage(jobName, buildNumber, jenkinsUrl, extra, userName, duration);
 		postToMicrosoft(json);
 	}
 
-	private CucumberResult dummyResults() {
-		return new CucumberResult(Arrays.asList(new FeatureResult("feature/web/dummy_test.feature", 100, 10, 0, 0)),1, 100, 0, 0, 0);
+	private RspecResult dummyResults() {
+		return new RspecResult(Arrays.asList(new SpecResult("feature/web/dummy_test.feature", 100, 10, 0, 0)),1, 100, 0, 0, 0, 0);
 	}
 
 	
@@ -64,45 +64,52 @@ public class MicrosoftClient {
 		}
 	}
 	
-	public CucumberResult processResults(JsonElement resultElement) {
-		int totalScenarios = 0;
-		int passPercent = 0;
+	public RspecResult processResults(JsonElement resultElement) {
+		int totalExamples = 0;
+		int totalPassPercent = 0;
 		int totaFailedScenarios = 0;
 		int totalPendingScenarios = 0;
-		List<FeatureResult> results = new ArrayList<FeatureResult>();
-		JsonArray features = resultElement.getAsJsonArray();
-		for (JsonElement featureElement : features) {
-			JsonObject feature = featureElement.getAsJsonObject();
-			JsonArray elements = feature.get("elements").getAsJsonArray();
-			int scenariosTotal = elements.size();
-			int failed = 0;
-			int pending = 0;
-			for (JsonElement scenarioElement : elements) {
-				JsonObject scenario = scenarioElement.getAsJsonObject();
-				JsonArray steps = scenario.get("steps").getAsJsonArray();
-				for (JsonElement stepElement : steps) {
-					JsonObject step = stepElement.getAsJsonObject();
-					String result = step.get("result").getAsJsonObject().get("status").getAsString();
-					if (!result.equals("passed")) {
-						if (result.equals("failed")) {
-							failed = failed + 1;
-							totaFailedScenarios = totaFailedScenarios + 1;
-						} else {
-							pending = pending + 1;
-							totalPendingScenarios = totalPendingScenarios + 1;
-						}
-						break;
-					}
-				}
-			}
-			totalScenarios = totalScenarios + scenariosTotal;
-			final int scenarioPassPercent = Math.round(((scenariosTotal - failed) * 100) / scenariosTotal);
-			if (scenarioPassPercent != 100 || !hideSuccessfulResults) {
-				results.add(new FeatureResult(feature.get("uri").getAsString(), scenarioPassPercent, (scenariosTotal - failed - pending), failed, pending));
-			}
+		int totalFailuresOutsideExample = 0;
+		
+		JsonObject summary = resultElement.getAsJsonObject().get("summary").getAsJsonObject();
+		totalExamples = summary.get("example_count").getAsInt();
+		totaFailedScenarios = summary.get("failure_count").getAsInt();
+		totalPendingScenarios = summary.get("pending_count").getAsInt();
+		totalFailuresOutsideExample = summary.get("errors_outside_of_examples_count").getAsInt();
+		totalPassPercent = Math.round(((totalExamples - totaFailedScenarios) * 100) / totalExamples);
+		
+		ArrayList<SpecResult> results = new ArrayList<SpecResult>();
+
+		SpecGroup specGroup = new SpecGroup();
+		
+		JsonArray examples = resultElement.getAsJsonObject().get("examples").getAsJsonArray();		
+		for (JsonElement exampleElement : examples) {
+			JsonObject exampleObject = exampleElement.getAsJsonObject();
+			Example example = new Example();			
+			example.uri = exampleObject.get("file_path").getAsString().replaceFirst("./", "");
+			example.totalTests = 1;
+			example.testsPassed = 0;
+			example.testsFailed = 0;
+			example.testsPending = 0;
+			
+			String status = exampleObject.get("status").getAsString();
+			
+			if (status.toLowerCase().equals("passed"))
+				example.testsPassed++;
+			if (status.toLowerCase().equals("failed"))
+				example.testsFailed++;
+			if (status.toLowerCase().equals("pending"))
+				example.testsPending++;
+			
+			specGroup.addExample(example);
 		}
-		passPercent = Math.round(((totalScenarios - totaFailedScenarios) * 100) / totalScenarios);
-		return new CucumberResult(results, totalScenarios, passPercent, (totalScenarios - totaFailedScenarios - totalPendingScenarios), totaFailedScenarios, totalPendingScenarios);
+		
+		for (Example example : specGroup.getGroupedExamples()) {
+			results.add(new SpecResult(example.uri, Math.round(((example.totalTests - example.testsFailed) * 100) / example.totalTests), example.testsPassed, example.testsFailed, example.testsPending));
+		}
+		
+		totalPassPercent = Math.round(((totalExamples - totaFailedScenarios) * 100) / totalExamples);
+		return new RspecResult(results, totalExamples, totalPassPercent, (totalExamples - totaFailedScenarios - totalPendingScenarios), totaFailedScenarios, totalPendingScenarios, totalFailuresOutsideExample);
 	}
 
 	private StringRequestEntity getStringRequestEntity(String json) {
@@ -111,5 +118,60 @@ public class MicrosoftClient {
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(ENCODING + " encoding is not supported with [" + json + "]", e);
 		}
+	}
+}
+
+class Example {
+	String uri;
+	int totalTests;
+	int testsPassed;
+	int testsFailed;
+	int testsPending;
+}
+
+class SpecGroup {
+	private ArrayList<Example> exampleList = new ArrayList<Example>();
+	
+	public ArrayList<Example> getGroupedExamples() {
+		return exampleList;		
+	}
+	
+	public void addExample(Example example) {
+		FoundIndex foundElement = checkUriIndex(example.uri);
+		
+		if (foundElement.exists == true) {
+			Example previousExample = exampleList.get(foundElement.index);
+			Example updatedExample = new Example();
+			updatedExample.uri = previousExample.uri;
+			updatedExample.totalTests = previousExample.totalTests + 1;
+			updatedExample.testsPassed = previousExample.testsPassed + example.testsPassed;
+			updatedExample.testsFailed = previousExample.testsFailed + example.testsFailed;
+			updatedExample.testsPending = previousExample.testsPending + example.testsPending;
+			
+			exampleList.set(foundElement.index, updatedExample);
+		} else {
+			exampleList.add(example);
+		}
+	}
+	
+	private FoundIndex checkUriIndex(String uri) {
+		int i = 0;
+		for (Example example : exampleList) {
+			if (example.uri.equals(uri)) {
+				return new FoundIndex(true, i);
+			}
+			i++;
+		}
+		return new FoundIndex(false, 0);
+	}
+}
+
+class FoundIndex {
+	final boolean exists;
+	final int index;
+	
+	public FoundIndex(boolean exists, int index) {
+		this.exists = exists;
+		this.index = index;
 	}
 }

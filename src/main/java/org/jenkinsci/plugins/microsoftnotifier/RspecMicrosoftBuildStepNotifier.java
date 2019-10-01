@@ -6,9 +6,7 @@ import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Publisher;
-import hudson.tasks.Recorder;
+import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 
 import java.io.IOException;
@@ -23,16 +21,16 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
-public class CucumberMicrosoftPostBuildNotifier extends Recorder {
+public class RspecMicrosoftBuildStepNotifier extends Builder {
 
-	private static final Logger LOG = Logger.getLogger(CucumberMicrosoftPostBuildNotifier.class.getName());
+	private static final Logger LOG = Logger.getLogger(RspecMicrosoftBuildStepNotifier.class.getName());
 
 	private final String jobWebhook;
 	private final String json;
 	private final boolean hideSuccessfulResults;
 
 	@DataBoundConstructor
-	public CucumberMicrosoftPostBuildNotifier(String jobWebhook, String json, boolean hideSuccessfulResults) {
+	public RspecMicrosoftBuildStepNotifier(String jobWebhook, String json, boolean hideSuccessfulResults) {
 		this.jobWebhook = jobWebhook;
 		this.json = json;
 		this.hideSuccessfulResults = hideSuccessfulResults;
@@ -51,9 +49,8 @@ public class CucumberMicrosoftPostBuildNotifier extends Recorder {
 	}
 
 	@Override
-	public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
-			throws InterruptedException, IOException {
-		String webhookUrl = CucumberMicrosoft.get().getWebHookEndpoint();
+	public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
+		String webhookUrl = RspecMicrosoft.get().getWebHookEndpoint();
 
 		if (this.jobWebhook != null && this.jobWebhook != "")
 			webhookUrl = this.jobWebhook;
@@ -63,7 +60,7 @@ public class CucumberMicrosoftPostBuildNotifier extends Recorder {
 			return true;
 		}
 
-		CucumberMicrosoftService service = new CucumberMicrosoftService(webhookUrl);
+		RspecMicrosoftService service = new RspecMicrosoftService(webhookUrl);
 		service.sendCucumberReportToMicrosoft(build, build.getWorkspace(), json, null, hideSuccessfulResults);
 
 		return true;
@@ -75,7 +72,7 @@ public class CucumberMicrosoftPostBuildNotifier extends Recorder {
 	}
 
 	@Extension
-	public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
+	public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
 		private String webHookEndpoint;
 	
@@ -112,9 +109,5 @@ public class CucumberMicrosoftPostBuildNotifier extends Recorder {
 		public String getWebHookEndpoint() {
 			return webHookEndpoint;
 		}
-	}
-
-	public BuildStepMonitor getRequiredMonitorService() {
-		return BuildStepMonitor.STEP;
 	}
 }

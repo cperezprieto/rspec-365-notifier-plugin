@@ -1,9 +1,9 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <f:entry title="Webhook Endpoint" field="jobWebhook" description="Which 365 Webhook to post to. This will override the Global configuration.">
+  <f:entry title="Webhook Endpoint" field="jobWebhook" description="Which 365 Webhook to post to. This will override the Global configuration">
     <f:textbox />
   </f:entry>
-  <f:entry title="JSON Result File" field="json" description="Location of the JSON result file for Cucumber">
+  <f:entry title="JSON Result File" field="json" description="Location of the JSON result file for Rspec">
     <f:textbox />
   </f:entry>
   <f:entry title="Hide Successful Results" field="hideSuccessfulResults" description="Only include details of failures in 365 message">

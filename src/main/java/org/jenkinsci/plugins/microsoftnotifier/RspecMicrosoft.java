@@ -16,7 +16,7 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
-public class CucumberMicrosoft extends JobProperty<Job<?, ?>> {
+public class RspecMicrosoft extends JobProperty<Job<?, ?>> {
 
 	@Override
 	public CucumberMicrosoftDescriptor getDescriptor() {
@@ -24,7 +24,7 @@ public class CucumberMicrosoft extends JobProperty<Job<?, ?>> {
 	}
 
 	public static CucumberMicrosoftDescriptor get() {
-		return (CucumberMicrosoftDescriptor) Jenkins.getInstance().getDescriptor(CucumberMicrosoft.class);
+		return (CucumberMicrosoftDescriptor) Jenkins.getInstance().getDescriptor(RspecMicrosoft.class);
 	}
 
 	@Extension

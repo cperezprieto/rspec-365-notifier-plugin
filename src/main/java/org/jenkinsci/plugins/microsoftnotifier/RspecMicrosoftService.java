@@ -12,14 +12,14 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.stream.JsonReader;
 
-public class CucumberMicrosoftService {
+public class RspecMicrosoftService {
 
-	private static final Logger LOG = Logger.getLogger(CucumberMicrosoftService.class.getName());
+	private static final Logger LOG = Logger.getLogger(RspecMicrosoftService.class.getName());
 
 	private final String webhookUrl;
 	private final String jenkinsUrl;
 
-	public CucumberMicrosoftService(String webhookUrl) {
+	public RspecMicrosoftService(String webhookUrl) {
 		this.webhookUrl = webhookUrl;
 		this.jenkinsUrl = JenkinsLocationConfiguration.get().getUrl();
 	}
