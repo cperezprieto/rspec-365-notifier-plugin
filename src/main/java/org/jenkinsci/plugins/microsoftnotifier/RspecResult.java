@@ -162,7 +162,7 @@ public class RspecResult {
 	private JsonObject getDetailSection(final String jobName, final int buildNumber, final String jenkinsUrl) {
 		final JsonObject detail = new JsonObject();
         
-		detail.addProperty("activityTitle", "## Features");
+		detail.addProperty("activityTitle", "## Specs");
 		detail.addProperty("markdown", true);
 		
 		final JsonArray facts = new JsonArray();
