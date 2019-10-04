@@ -38,12 +38,12 @@ public class RspecMicrosoftService {
 		client.postToMicrosoft(jsonElement, build.getParent().getDisplayName(), build.getNumber(), extra, userName, duration);
 	}
 
-	private JsonElement getResultFileAsJsonElement(FilePath workspace, String json) {
-		final FilePath jsonPath = new FilePath(workspace, json);
-		LOG.info("file path: " + jsonPath);
-		
+	private JsonElement getResultFileAsJsonElement(FilePath workspace, String json) {		
 		final Gson gson = new Gson();
 		try {
+			final FilePath jsonPath = new FilePath(workspace, json);
+			LOG.info("file path: " + jsonPath);
+			
 			final JsonReader jsonReader = new JsonReader(new InputStreamReader(jsonPath.read()));
 			return gson.fromJson(jsonReader, JsonElement.class);
 		} catch (IOException e) {

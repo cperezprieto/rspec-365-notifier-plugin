@@ -148,6 +148,11 @@ public class RspecMicrosoftStep extends AbstractStepImpl {
             return null;
         }
 
+        /**
+         * Helper method for logging.
+         */
+        private void log(String format, Object... args) {
+            this.listener.getLogger().println("[Rspec365Notifier] " + String.format(format, args));
+        }
     }
-
 }

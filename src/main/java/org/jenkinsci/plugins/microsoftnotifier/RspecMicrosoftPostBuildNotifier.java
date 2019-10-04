@@ -63,8 +63,13 @@ public class RspecMicrosoftPostBuildNotifier extends Recorder {
 			return true;
 		}
 
-		RspecMicrosoftService service = new RspecMicrosoftService(webhookUrl);
-		service.sendRspecReportToMicrosoft(build, build.getWorkspace(), json, null, hideSuccessfulResults);
+		try {
+			RspecMicrosoftService service = new RspecMicrosoftService(webhookUrl);
+			service.sendRspecReportToMicrosoft(build, build.getWorkspace(), json, null, hideSuccessfulResults);
+		} catch (Exception e) {
+			LOG.severe(e.getMessage());
+			listener.getLogger().println("[Rspec365Notifier] Unable to send message to 365");
+		}
 
 		return true;
 	}
