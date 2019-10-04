@@ -1,0 +1,16 @@
+{
+  "examples": [],
+  "messages": [
+    "\nAn error occurred while loading file",
+    "Run options: exclude {:scenario=>true, :wip=>true}"
+  ],
+  "summary": {
+    "duration": 0.001804085,
+    "errors_outside_of_examples_count": 3,
+    "example_count": 0,
+    "failure_count": 0,
+    "pending_count": 0
+  },
+  "summary_line": "0 examples, 0 failures, 3 errors occurred outside of examples",
+  "version": "3.8.2"
+}

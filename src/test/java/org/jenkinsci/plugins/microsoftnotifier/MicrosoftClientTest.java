@@ -23,6 +23,24 @@ import com.google.gson.stream.JsonReader;
 public class MicrosoftClientTest {
 
 	@Test
+	public void canGenerateFullFaultNoExamplesMicrosoftMessage() throws FileNotFoundException {
+		JsonElement element = loadTestResultFile("failed-no-examples.json");
+		assertNotNull(element);
+		RspecResult result = new MicrosoftClient("https://jenkins.seosautomation.com/job/api_test/20/", "https://jenkins.seosautomation.com/", false).processResults(element);
+		assertNotNull(result);
+		assertNotNull(result.getSpecResults());
+		assertEquals(0, result.totalExamples);
+		assertEquals(0, result.totalPassedTests);
+		assertEquals(0, result.totalFailedTests);
+		assertEquals(0, result.totalPendingTests);
+		assertEquals(3, result.failuresOutsideTests);
+		assertEquals(0, result.passPercentage);
+		
+		String microsoftMessage = result.toMicrosoftMessage("test_job_API", 7, "https://jenkins.seosautomation.com/", null, "cperezprieto", "35 minutos");
+		assertNotNull(microsoftMessage);
+	}
+	
+	@Test
 	public void canGenerateFullSuccessfulMicrosoftMessage() throws FileNotFoundException {
 		JsonElement element = loadTestResultFile("successful.json");
 		assertNotNull(element);

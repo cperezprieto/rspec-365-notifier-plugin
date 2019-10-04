@@ -76,7 +76,8 @@ public class MicrosoftClient {
 		totaFailedScenarios = summary.get("failure_count").getAsInt();
 		totalPendingScenarios = summary.get("pending_count").getAsInt();
 		totalFailuresOutsideExample = summary.get("errors_outside_of_examples_count").getAsInt();
-		totalPassPercent = Math.round(((totalExamples - totaFailedScenarios) * 100) / totalExamples);
+		if(totalExamples > 0)
+			totalPassPercent = Math.round(((totalExamples - totaFailedScenarios) * 100) / totalExamples);
 		
 		ArrayList<SpecResult> results = new ArrayList<SpecResult>();
 
@@ -108,7 +109,6 @@ public class MicrosoftClient {
 			results.add(new SpecResult(example.uri, Math.round(((example.totalTests - example.testsFailed) * 100) / example.totalTests), example.testsPassed, example.testsFailed, example.testsPending));
 		}
 		
-		totalPassPercent = Math.round(((totalExamples - totaFailedScenarios) * 100) / totalExamples);
 		return new RspecResult(results, totalExamples, totalPassPercent, (totalExamples - totaFailedScenarios - totalPendingScenarios), totaFailedScenarios, totalPendingScenarios, totalFailuresOutsideExample);
 	}
 
