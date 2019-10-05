@@ -38,6 +38,7 @@ public class MicrosoftClientTest {
 		
 		String microsoftMessage = result.toMicrosoftMessage("test_job_API", 7, "https://jenkins.seosautomation.com/", null, "cperezprieto", "35 minutos");
 		assertNotNull(microsoftMessage);
+		assertEquals(false, microsoftMessage.contains("{\"activityTitle\":\"## Specs\""));
 	}
 	
 	@Test

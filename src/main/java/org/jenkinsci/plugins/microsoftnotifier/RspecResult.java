@@ -161,33 +161,36 @@ public class RspecResult {
 
 	private JsonObject getDetailSection(final String jobName, final int buildNumber, final String jenkinsUrl) {
 		final JsonObject detail = new JsonObject();
-        
-		detail.addProperty("activityTitle", "## Specs");
-		detail.addProperty("markdown", true);
+        final List<SpecResult> specs = getSpecResults();
 		
-		final JsonArray facts = new JsonArray();
-		
-		int count = 1;
-		
-		for (SpecResult spec : getSpecResults()) {
-			final JsonObject scenario = new JsonObject();
-			scenario.addProperty("name", count);
+        if (specs.size() > 0) {
+			detail.addProperty("activityTitle", "## Specs");
+			detail.addProperty("markdown", true);
 			
-			String featureColor = PASSED;
-			String featureStatus = spec.getStatus();
+			final JsonArray facts = new JsonArray();
 			
-			if (featureStatus == "Pending")
-				featureColor = WARNING;
+			int count = 1;
 			
-			if (featureStatus == "Failed")
-				featureColor = FAILED;
+			for (SpecResult spec : specs) {
+				final JsonObject scenario = new JsonObject();
+				scenario.addProperty("name", count);
+				
+				String featureColor = PASSED;
+				String featureStatus = spec.getStatus();
+				
+				if (featureStatus == "Pending")
+					featureColor = WARNING;
+				
+				if (featureStatus == "Failed")
+					featureColor = FAILED;
+				
+				scenario.addProperty("value", "**<span style='color:#" + featureColor + "'>" + escapeSpecialCharacters(spec.getDisplayName()) + "</span>**");
+				facts.add(scenario);
+				count++;
+			}
 			
-			scenario.addProperty("value", "**<span style='color:#" + featureColor + "'>" + escapeSpecialCharacters(spec.getDisplayName()) + "</span>**");
-			facts.add(scenario);
-			count++;
+			detail.add("facts", facts);
 		}
-		
-		detail.add("facts", facts);
 		
 		return detail;
 	}
