@@ -149,7 +149,7 @@ public class RspecResult {
 		
 		final JsonObject buildSummary = new JsonObject();
 		buildSummary.addProperty("name", "Build #" + buildNumber);
-		buildSummary.addProperty("value", "**Started by**: " + userName + ", **Duration**: " + duration);
+		buildSummary.addProperty("value", "**Started by**: " + escapeSpecialCharacters(userName) + ", **Duration**: " + duration);
 		
 		facts.add(testSummary);
 		facts.add(buildSummary);	

@@ -54,8 +54,9 @@ public class MicrosoftClientTest {
 		assertEquals(0, result.totalPendingTests);
 		assertEquals(100, result.passPercentage);
 		
-		String microsoftMessage = result.toMicrosoftMessage("test_job_API", 7, "https://jenkins.seosautomation.com/", null, "cperezprieto", "35 minutos");
+		String microsoftMessage = result.toMicrosoftMessage("test_job_API", 7, "https://jenkins.seosautomation.com/", null, "user c_perez_prieto", "35 minutos");
 		assertNotNull(microsoftMessage);
+		assertEquals(true, microsoftMessage.contains("user c\\\\_perez\\\\_prieto"));
 	}
 	
 	@Test
